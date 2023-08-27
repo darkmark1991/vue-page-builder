@@ -1,12 +1,7 @@
 <script setup lang="ts">
   import { Ref, ref } from 'vue'
   import draggable from 'vuedraggable'
-
-  interface Block {
-    id?: number
-    type: string,
-    value: string,
-  }
+  import { Block, BlockType, ImageBlock, TextBlock } from './types';
 
   const imageOptions: string[] = [
     'https://i.imgur.com/TOgy947.jpg',
@@ -20,12 +15,18 @@
 
   const availableBlocks: Ref<Block[]> = ref([
     {
-      type: 'text',
+      type: BlockType.Text,
       value: 'Lorem ipsum',
+      fontSize: 14,
+      fontWeight: 400,
+      align: 'center'
     },
     {
-      type: 'image',
+      type: BlockType.Image,
       value: 'https://i.imgur.com/clDASIr.png',
+      width: 400,
+      opacity: 1,
+      align: 'center'
     },
   ])
 
@@ -79,7 +80,7 @@
                   item-key="type">
           <template #item="{ element }">
             <div class="block" :class="`block--${element.type}`">
-              <template v-if="element.type === 'image'">
+              <template v-if="element.type === BlockType.Image">
                 <img src="./assets/image_placeholder.png" alt="">
               </template>
               <template v-else>
@@ -91,20 +92,46 @@
       </div>
       <div v-if="activeBlockRef" class="details">
         <h3>Edit {{activeBlockRef.type}} block</h3>
-        <template v-if="activeBlockRef.type === 'image'">
-          <div>
-            Choose image:
+        <template v-if="activeBlockRef.type === BlockType.Image">
+          <div class="details--choose-image">
+            <div>Image</div>
             <div class="details--image-selector">
               <template v-for="url in imageOptions">
                 <img :src="url" alt="" @click="selectImage(url)">
               </template>
             </div>
           </div>
+          <div class="details--width">
+            <input type="range" min="100" max="800" v-model="(activeBlockRef as ImageBlock).width">
+          </div>
+          <div class="details--opacity">
+            <input type="range" min="0" max="1" step="0.01" v-model="(activeBlockRef as ImageBlock).opacity">
+          </div>
         </template>
         <template v-else>
-          Change text:
-          <textarea name="" id="" rows="5" v-model="activeBlockRef.value"></textarea>
+          <div class="details--text">
+            <div>Text</div>
+            <textarea name="" id="" rows="5" v-model="activeBlockRef.value"></textarea>
+          </div>
+          <div class="details--font-size">
+            <div>Font size</div>
+            <input type="range" min="6" max="36" v-model="(activeBlockRef as TextBlock).fontSize">
+          </div>
+          <div class="details--font-weight">
+            <div>Font weight</div>
+            <input type="range" min="100" max="900" step="100" v-model="(activeBlockRef as TextBlock).fontWeight">
+          </div>
         </template>
+        <div class="details--align">
+          <div>Position:</div>
+          <input type="radio" id="left" value="Left" v-model="activeBlockRef.align" />
+          <label for="left">Left</label>
+          <input type="radio" id="center" value="center" v-model="activeBlockRef.align" />
+          <label for="center">center</label>
+          <input type="radio" id="right" value="right" v-model="activeBlockRef.align" />
+          <label for="right">right</label>
+        </div>
+        <button @click="activeBlockRef = null">Done</button>
       </div>
     </div>
     <div class="page-builder">
@@ -120,10 +147,10 @@
               <a @click="duplicateBlock(index, element)">Duplicate </a>
               <a @click="deleteBlock(index)">Delete </a>
             </div>
-            <div v-if="element.type === 'image'">
-              <img :src="element.value" alt="">
+            <div v-if="element.type === BlockType.Image" :style="{textAlign: element.align, opacity: element.opacity}">
+              <img :src="element.value" alt="" :width="element.width">
             </div>
-            <div v-else>
+            <div v-else :style="{textAlign: element.align, fontSize: `${element.fontSize}px`, fontWeight: element.fontWeight, color: element.color}">
               {{ element.value }}
             </div>
           </div>
@@ -179,8 +206,7 @@
       padding: 10px;
       margin: 5px;
       border: 1px dashed gray;
-      display: flex;
-      justify-content: center;
+      text-align: center;
       cursor: pointer;
 
       &--controls {
