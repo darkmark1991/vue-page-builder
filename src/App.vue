@@ -3,38 +3,62 @@
   import draggable from 'vuedraggable'
 
   interface Block {
+    id?: number
     type: string,
     value: string,
   }
 
+  const imageOptions: string[] = [
+    'https://i.imgur.com/TOgy947.jpg',
+    'https://i.imgur.com/0R14MHH.jpg',
+    'https://i.imgur.com/jgdWjKL.jpg',
+    'https://i.imgur.com/YCnz3Mk.jpg',
+    'https://i.imgur.com/eRdGuFY.jpg'
+  ]
+
+  const activeBlockRef: Ref<Block | null> = ref(null)
+
   const availableBlocks: Ref<Block[]> = ref([
     {
       type: 'text',
-      value: 'Text',
+      value: 'Lorem ipsum',
     },
     {
       type: 'image',
-      value: 'Image',
+      value: 'https://i.imgur.com/clDASIr.png',
     },
   ])
 
   const pageRef: Ref<Block[]> = ref([])
 
+  const idGen = (function() {
+    let id = 0
+    return () => id++
+  })()
+
+  // when a block is created it should get unique id
+  const cloneBlock = (block: Block) => ({...block, id: idGen()})
+
   const exportJson = () => {
-    // Landing page data like text content, links to images, block order, etc.
-    // should be exported to JSON format when the user clicks the “Save” button
+    console.log(pageRef.value)
   }
 
-  const editBlock = (index: number) => {
-    //
+  const editBlock = (block: Block) => {
+    activeBlockRef.value = block
   }
 
-  const duplicateBlock = (index: number) => {
-    //
+  const duplicateBlock = (index: number, block: Block) => {
+    pageRef.value.splice(index + 1, 0, cloneBlock(block))
   }
 
   const deleteBlock = (index: number) => {
-    //
+    pageRef.value.splice(index, 1)
+  }
+
+  const selectImage = (url: string) => {
+    if (activeBlockRef.value) {
+      activeBlockRef.value.value = url
+    }
   }
 </script>
 
@@ -46,33 +70,62 @@
         <button @click="exportJson()">Save</button>
       </div>
       <div class="available-blocks">
-        <h2>Available blocks</h2>
+        <h3>Available blocks</h3>
         <draggable class="drag-zone"
                   :list="availableBlocks"
-                  :group="{ name: 'tool', pull: 'clone', put: false, move: false }"
+                  :group="{ name: 'block', pull: 'clone', put: false, move: false }"
+                  :clone="cloneBlock"
+                  :sort="false"
                   item-key="type">
           <template #item="{ element }">
             <div class="block" :class="`block--${element.type}`">
-              {{ element.value }}
+              <template v-if="element.type === 'image'">
+                <img src="./assets/image_placeholder.png" alt="">
+              </template>
+              <template v-else>
+                Text
+              </template>
             </div>
           </template>
         </draggable>
+      </div>
+      <div v-if="activeBlockRef" class="details">
+        <h3>Edit {{activeBlockRef.type}} block</h3>
+        <template v-if="activeBlockRef.type === 'image'">
+          <div>
+            Choose image:
+            <div class="details--image-selector">
+              <template v-for="url in imageOptions">
+                <img :src="url" alt="" @click="selectImage(url)">
+              </template>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          Change text:
+          <textarea name="" id="" rows="5" v-model="activeBlockRef.value"></textarea>
+        </template>
       </div>
     </div>
     <div class="page-builder">
       <h2>Drop zone</h2>
       <draggable class="drop-zone"
                 :list="pageRef"
-                group="tool"
-                item-key="type">
-        <template #item="{ element }">
-          <div class="block" :class="`block--${element.type}`">
+                group="block"
+                item-key="id">
+        <template #item="{ element, index }">
+          <div class="block" :class="{'block--active': element.id === activeBlockRef?.id}">
             <div class="block--controls">
-              <a @click="editBlock(index)">Edit </a>
-              <a @click="duplicateBlock(index)">Duplicate </a>
+              <a @click="editBlock(element)">Edit </a>
+              <a @click="duplicateBlock(index, element)">Duplicate </a>
               <a @click="deleteBlock(index)">Delete </a>
             </div>
-            {{ element.value }}
+            <div v-if="element.type === 'image'">
+              <img :src="element.value" alt="">
+            </div>
+            <div v-else>
+              {{ element.value }}
+            </div>
           </div>
         </template>
       </draggable>
@@ -83,18 +136,34 @@
 <style scoped lang="scss">
 .page {
   display: grid;
-  grid-template-columns: 400px auto;
+  grid-template-columns: 300px auto;
 }
 
 .sidebar {
   background-color: lightblue;
   padding: 1rem 2rem;
+  min-height: 100vh;
 }
 .available-blocks {
   .block {
     text-align: center;
     padding: 5px;
+    background-color: #fff;
     border: 1px dashed gray;
+    margin-bottom: 1rem;
+    cursor: pointer;
+
+    &--image {
+      padding: 20px;
+      img {
+        width: 80px;
+      }
+    }
+
+    &:hover {
+      opacity: 0.8;
+      border-color: blue;
+    }
   }
 }
 
@@ -102,12 +171,50 @@
   padding: 1rem 2rem;
   .drop-zone {
     min-height: 40px;
-    border: 1px dashed gray;
+    border: 2px dashed gray;
     padding: 5px;
 
     .block {
-      padding: 5px;
+      position: relative;
+      padding: 10px;
+      margin: 5px;
       border: 1px dashed gray;
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+
+      &--controls {
+        visibility: hidden;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+      }
+
+      &:hover,
+      &--active {
+        background-color: lightblue;
+        .block--controls {
+          visibility: visible;
+        }
+      }
+    }
+  }
+}
+.details {
+  textarea {
+    width: 100%;
+  }
+
+  &--image-selector {
+    img {
+      width: 40px;
+      margin-right: 5px;
+      cursor: pointer;
+
+      &:hover {
+        outline: 2px solid blue;
+      }
     }
   }
 }
