@@ -65,6 +65,18 @@
       activeBlockRef.value.value = url
     }
   }
+
+  const importJson = (e: any) => {
+    const fr = new FileReader()
+    
+    fr.onload = e => {
+      if (e.target) {
+        const result = JSON.parse(e.target.result)
+        pageRef.value = result
+      }
+    }
+    fr.readAsText(e.target.files.item(0))
+  }
 </script>
 
 <template>
@@ -72,7 +84,11 @@
     <div class="sidebar">
       <h2>Page Builder</h2>
       <div class="controls">
-        <button @click="exportJson()">Save</button>
+        <label class="button">
+            <input type="file" @change="importJson"/>
+            Open
+        </label>
+        <button class="button" @click="exportJson()">Save</button>
       </div>
       <div class="available-blocks">
         <h3>Available blocks</h3>
@@ -179,9 +195,19 @@
   background-color: lightblue;
   padding: 1rem 2rem;
   min-height: 100vh;
+
+  .controls {
+    display: flex;
+
+    input[type="file"] {
+      display: none;
+    }
+    .button {
+      margin-right: 5px;
+    }
+  }
 }
 .preview {
-
   padding: 1rem 2rem;
 }
 .available-blocks {
@@ -255,6 +281,22 @@
         outline: 2px solid blue;
       }
     }
+  }
+}
+.button {
+  display: block;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  background-color: #fff;
+  transition: border-color 0.25s;
+
+  &:hover {
+    border-color: #646cff;
   }
 }
 </style>
