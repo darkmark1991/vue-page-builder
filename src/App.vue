@@ -41,7 +41,11 @@
   const cloneBlock = (block: Block) => ({...block, id: idGen()})
 
   const exportJson = () => {
-    console.log(pageRef.value)
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pageRef.value));
+    const a = document.createElement('a')
+    a.setAttribute('href', dataStr)
+    a.setAttribute('download', 'export.json')
+    a.click()
   }
 
   const editBlock = (block: Block) => {
@@ -157,19 +161,28 @@
         </template>
       </draggable>
     </div>
+
+    <div class="preview">
+      <h2>JSON structure</h2>
+      <pre>{{ JSON.stringify(pageRef, null, 2) }}</pre>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .page {
   display: grid;
-  grid-template-columns: 300px auto;
+  grid-template-columns: 300px 2fr 1fr;
 }
 
 .sidebar {
   background-color: lightblue;
   padding: 1rem 2rem;
   min-height: 100vh;
+}
+.preview {
+
+  padding: 1rem 2rem;
 }
 .available-blocks {
   .block {
