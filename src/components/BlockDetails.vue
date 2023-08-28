@@ -1,23 +1,45 @@
 <script setup lang="ts">
+  import { PlusIcon } from '@heroicons/vue/24/solid'
   import usePageData from '../composables/usePageData'
   import { BlockType, ImageBlock, TextBlock } from '../types'
+import { Ref, ref } from 'vue';
 
   const {
     activeBlockRef,
     exitEditMode,
   } = usePageData()
 
-  const imageOptions: string[] = [
+  const customImageActive: Ref<boolean> = ref(false)
+  const customImageUrl: Ref<string> = ref('')
+  const customImageError: Ref<boolean> = ref(false)
+
+  const imageOptions: Ref<string[]> = ref([
     'https://i.imgur.com/TOgy947.jpg',
     'https://i.imgur.com/0R14MHH.jpg',
     'https://i.imgur.com/jgdWjKL.jpg',
     'https://i.imgur.com/YCnz3Mk.jpg',
     'https://i.imgur.com/eRdGuFY.jpg'
-  ]
+  ])
 
   const selectImage = (url: string) => {
+    customImageActive.value = false
+    customImageError.value = false
+    customImageUrl.value = ''
     if (activeBlockRef.value) {
       activeBlockRef.value.value = url
+    }
+  }
+
+  const addCustomImage = async () => {
+    const url = customImageUrl.value
+    const res = await fetch(url)
+    const blob = await res.blob()
+
+    if (!blob.type.startsWith('image')) {
+      customImageError.value = true
+    } else {
+      imageOptions.value.push(url)
+      selectImage(url)
     }
   }
 </script>
@@ -28,10 +50,22 @@
     <template v-if="activeBlockRef.type === BlockType.Image">
       <div class="mt-2">
         <label for="image-selector" class="block mb-2 text-sm font-medium text-gray-900">Choose image</label>
-        <div id="image-selector" class="grid grid-cols-5 gap-1">
+        <div id="image-selector" class="grid grid-cols-3 gap-2">
           <template v-for="url in imageOptions">
-            <img :src="url" alt="" @click="selectImage(url)" class="outline-blue-600 cursor-pointer hover:outline hover:outline-2" :class="{'outline outline-2': url === activeBlockRef.value}">
+            <img :src="url" alt="" @click="selectImage(url)" class="outline-blue-600 cursor-pointer hover:outline hover:outline-2 rounded-md" :class="{'outline outline-2': url === activeBlockRef.value}">
           </template>
+          <div class="bg-white flex justify-center items-center rounded-md p-3 cursor-pointer outline outline-1 outline-gray-400 shadow-inner hover:outline-blue-600 hover:outline-2 hover:text-blue-600"
+               @click="customImageActive = true">
+            <PlusIcon class="text-gray-600"/>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4" v-if="customImageActive">   
+        <div class="flex flex-col justify-center items-center">
+            <input type="custom-image" id="custom-image" v-model="customImageUrl"
+                   class="p-2 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:border-blue-500"
+                   :class="{'border-red-600 text-red-600': customImageError}" placeholder="Image URL">
+            <button type="submit" class="btn mt-2" @click="addCustomImage()">Add</button>
         </div>
       </div>
       <div class="mt-4">
@@ -74,7 +108,6 @@
     <div class="flex justify-center mt-4">
       <button class="btn mt-2" @click="exitEditMode()">Done</button>
     </div>
-    
   </div>
 </template>
 
