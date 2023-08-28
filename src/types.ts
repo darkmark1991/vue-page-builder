@@ -5,8 +5,9 @@ export enum BlockType {
 
 interface BasicBlock {
   id?: number
-  type: string,
-  value: string,
+  type: string
+  value: string
+  align: string
 }
 
 export interface TextBlock extends BasicBlock {
