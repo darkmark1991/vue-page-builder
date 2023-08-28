@@ -20,8 +20,12 @@ export default function usePageData() {
     pageRef.value.push(cloneBlock(block))
   }
 
-  const editBlock = (block: Block) => {
+  const enterEditMode = (block: Block) => {
     activeBlockRef.value = block
+  }
+
+  const exitEditMode = () => {
+    activeBlockRef.value = null
   }
 
   const duplicateBlock = (index: number, block: Block) => {
@@ -30,11 +34,14 @@ export default function usePageData() {
   }
 
   const deleteBlock = (index: number) => {
+    if (pageRef.value?.[index].id === activeBlockRef.value?.id) {
+      activeBlockRef.value = null
+    }
     pageRef.value.splice(index, 1)
   }
 
   const getDataJson = () => {
-    return 'data:text/json;charset=utf-8' + encodeURIComponent(JSON.stringify(pageRef.value))
+    return 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(pageRef.value))
   }
 
   const setPageData = (jsonStr: string) => {
@@ -56,7 +63,8 @@ export default function usePageData() {
     activeBlockRef,
     cloneBlock,
     addBlock,
-    editBlock,
+    enterEditMode,
+    exitEditMode,
     duplicateBlock,
     deleteBlock,
     getDataJson,

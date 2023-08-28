@@ -6,7 +6,7 @@ const {
   pageRef,
   activeBlockRef,
   addBlock,
-  editBlock,
+  enterEditMode,
   duplicateBlock,
   deleteBlock,
   setPageData
@@ -54,7 +54,7 @@ describe('Test usePageData composable', () => {
   })
 
   test('Edit block', () => {
-    editBlock(pageRef.value?.[2])
+    enterEditMode(pageRef.value?.[2])
 
     expect(activeBlockRef.value?.id).toEqual(pageRef.value?.[2].id)
     expect(activeBlockRef.value?.value).toEqual(pageRef.value?.[2].value)

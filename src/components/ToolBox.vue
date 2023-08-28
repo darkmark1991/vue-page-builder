@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { Ref, ref } from 'vue'
   import draggable from 'vuedraggable'
+  import { ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/vue/24/solid'
   import usePageData from '../composables/usePageData'
   import { Block, BlockType } from '../types'
 
@@ -31,7 +32,8 @@
     const dataStr = getDataJson()
     const a = document.createElement('a')
     a.setAttribute('href', dataStr)
-    a.setAttribute('download', 'export.json')
+    a.setAttribute('label', 'asdfasdfasdf')
+    a.setAttribute('download', `export_${Date.now()}.json`)
     a.click()
   }
 
@@ -47,15 +49,19 @@
 </script>
 
 <template>
-  <div class="controls">
-    <label class="button">
+  <div class="controls mt-4">
+    <label class="btn mr-2">
         <input type="file" @change="importJson"/>
-        Open
+        <ArrowUpTrayIcon class="mr-2"/>
+        Import
     </label>
-    <button class="button" @click="exportJson()">Save</button>
+    <button class="btn" @click="exportJson()">
+      <ArrowDownTrayIcon class="mr-2"/>
+      Save
+    </button>
   </div>
-  <div class="available-blocks">
-    <h3>Available blocks</h3>
+  <div class="control-group mt-4">
+    <h3 class="text-md">Available blocks</h3>
     <draggable class="drag-zone"
               :list="availableBlocks"
               :group="{ name: 'block', pull: 'clone', put: false, move: false }"
@@ -63,7 +69,7 @@
               :sort="false"
               item-key="type">
       <template #item="{ element }">
-        <div class="block" :class="`block--${element.type}`">
+        <div class="tool-block" :class="`tool-block--${element.type}`">
           <template v-if="element.type === BlockType.Image">
             <img src="../assets/image_placeholder.png" alt="">
           </template>
@@ -87,12 +93,14 @@
       margin-right: 5px;
     }
   }
-  .block {
-    text-align: center;
+
+  .tool-block {
+    display: flex;
+    justify-content: center;
     padding: 5px;
     background-color: #fff;
     border: 1px dashed gray;
-    margin-bottom: 1rem;
+    margin-top: 0.5rem;
     cursor: pointer;
 
     &--image {
@@ -109,6 +117,10 @@
     &--ghost {
       margin: 5px;
       background-color: lightblue;
+    }
+
+    &:first-child {
+      margin-top: 5px;
     }
   }
 </style>
