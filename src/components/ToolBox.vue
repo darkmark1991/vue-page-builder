@@ -39,8 +39,7 @@
     const fr = new FileReader()
     fr.onload = (e) => {
       if (e.target?.result) {
-        const result = JSON.parse(e.target.result as string)
-        setPageData(result)
+        setPageData(e.target.result as string)
       }
     }
     fr.readAsText(event.target.files.item(0))

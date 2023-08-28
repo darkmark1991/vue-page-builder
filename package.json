@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
+    "vitest": "^0.34.3",
     "vue": "^3.3.4",
     "vuedraggable": "^4.1.0"
   },
